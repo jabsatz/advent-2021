@@ -66,6 +66,11 @@ const New = ({ day, onFinish }) => {
   useEffect(() => {
     const fn = async () => {
       try {
+        await fs.access(`./src/inputs.json`);
+      } catch (e) {
+        await fs.writeFile(`./src/inputs.json`, '{}', 'utf-8');
+      }
+      try {
         await fs.access(`./src/day${day}.js`);
         setError('Code file already exists');
       } catch (error) {
