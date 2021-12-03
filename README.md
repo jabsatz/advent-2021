@@ -10,3 +10,5 @@
 
 1. Open your terminal.
 2. Run de command `npm start` or `yarn start`.
+
+## Copyright 2021 Julián Absatz
