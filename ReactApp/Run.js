@@ -3,26 +3,30 @@ const { useState, useEffect } = require('react');
 const { Text, useInput, Box, Newline } = require('ink');
 const { performance: p } = require('perf_hooks');
 
+const PerfText = ({ measure }) => {
+  const duration =
+    measure.duration > 1000
+      ? `${(measure.duration / 1000).toFixed(2)}s`
+      : `${measure.duration.toFixed(2)}ms`;
+
+  return (
+    <>
+      <Newline />
+      Completed in: <Text color="green">{duration}</Text>
+    </>
+  );
+};
+
 const RunText = ({ result, error, day, measures }) => {
   if (result) {
     return (
       <Text color="whiteBright">
         Part 1 result: <Text color="cyan">{result[0]}</Text>
-        {measures && (
-          <>
-            <Newline />
-            Completed in: <Text color="green">{measures[0].duration}ms</Text>
-          </>
-        )}
+        {measures && <PerfText measure={measures[0]} />}
         <Newline />
         <Newline />
         Part 2 result: <Text color="cyan">{result[1]}</Text>
-        {measures && (
-          <>
-            <Newline />
-            Completed in: <Text color="green">{measures[1].duration}ms</Text>
-          </>
-        )}
+        {measures && <PerfText measure={measures[1]} />}
       </Text>
     );
   }
