@@ -11,10 +11,6 @@ const getPointsInLine = ([start, end]) => {
     for (let y = Math.min(startY, endY); y <= Math.max(startY, endY); y++) {
       points.push([startX, y]);
     }
-  } else if (startY === endY) {
-    for (let x = Math.min(startX, endX); x <= Math.max(startX, endX); x++) {
-      points.push([x, startY]);
-    }
   } else {
     const slope = (endY - startY) / (endX - startX);
     const b = startY - slope * startX;
