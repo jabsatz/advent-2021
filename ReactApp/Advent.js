@@ -35,7 +35,9 @@ const Advent = () => {
   return (
     <Box flexDirection="column">
       <Box marginBottom={1}>
-        <Text color="green">{figlet.textSync(`Advent of Code ${process.env.ADVENT_YEAR}`, 'Big Money-nw')}</Text>
+        <Text color="green">
+          {figlet.textSync(`AoC ${process.env.ADVENT_YEAR}`, 'Big Money-nw')}
+        </Text>
       </Box>
       {phase === PHASE_TYPE.OPTIONS && <Options onSelect={onSelectOption} />}
       {phase === PHASE_TYPE.DAY && <Day onSelect={onSelectDay} />}
