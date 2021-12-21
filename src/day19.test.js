@@ -328,10 +328,10 @@ test('part1 simple', () => {
   expect(part1WithCustomDetectionArea(simpleInput, 6)).toBe(6);
 });
 
-test.only('part1', () => {
+test('part1', () => {
   expect(part1(input)).toBe(79);
 });
 
-test.skip('part2', () => {
-  expect(part2(input)).toBe(output);
+test.only('part2', () => {
+  expect(part2(input)).toBe(3621);
 });

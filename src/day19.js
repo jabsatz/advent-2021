@@ -28,8 +28,6 @@ const ROTATIONS = {
   3: ([x, y, z]) => [y, -x, z],
 };
 
-// [x,y,z] -> [x, z, -y] -> [-z, x, -y] -> [-z, -y, -x] -> [z, y, -x]
-
 const ROTATION_INDEXES = _.range(0, 24);
 
 const rotationFns = ROTATION_INDEXES.map(rotationIndex =>
@@ -91,7 +89,13 @@ class Beacon {
     return new Beacon(rotationFns[rotationIndex](this.position));
   }
 
-  matches(otherBeacon) {
+  matches(otherBeacon, direction) {
+    if (
+      direction &&
+      direction !== calculateDirection(this.position, otherBeacon.position).join(',')
+    )
+      return false;
+
     let linksToMatch = this.links.filter(link =>
       advancePosition(otherBeacon.position, link.direction).every(pos => Math.abs(pos) <= 1000),
     );
@@ -171,11 +175,39 @@ class Scanner {
       for (let i = 0; i < beaconsLeft.length; i++) {
         const beacon = beaconsLeft[i];
         if (beacon.matches(otherBeacon)) {
-          matchingBeacons.push({ ...beacon, otherPerspective: otherBeacon });
+          matchingBeacons.push({
+            ...beacon,
+            otherPerspective: otherBeacon,
+            direction: calculateDirection(beacon.position, otherBeacon.position).join(','),
+          });
           break;
         }
       }
     });
+    const grouped = _.groupBy('direction', matchingBeacons);
+    if (Object.keys(grouped).length > 1) {
+      // There are wrong matches, recalculate for the better direction
+      const biggestGroup = _.maxBy(matches => matches.length, Object.values(grouped));
+      const direction = biggestGroup[0].direction;
+      matchingBeacons = biggestGroup;
+      otherBeacons.forEach(otherBeacon => {
+        const beaconsLeft = this.originalBeacons.filter(
+          originalBeacon =>
+            !matchingBeacons.some(matchingBeacon => matchingBeacon.key === originalBeacon.key),
+        );
+        for (let i = 0; i < beaconsLeft.length; i++) {
+          const beacon = beaconsLeft[i];
+          if (beacon.matches(otherBeacon, direction)) {
+            matchingBeacons.push({
+              ...beacon,
+              otherPerspective: otherBeacon,
+              direction: calculateDirection(beacon.position, otherBeacon.position).join(','),
+            });
+            break;
+          }
+        }
+      });
+    }
     return matchingBeacons;
   }
 
@@ -203,7 +235,6 @@ class Scanner {
     initialPosition = [0, 0, 0],
   ) {
     visited.add(this.key);
-    console.log(this.key);
     this.position = initialPosition;
     this.realBeacons = this.originalBeacons.map(beacon => {
       const position = advancePosition(initialPosition, rotationFn(beacon.position));
@@ -216,7 +247,6 @@ class Scanner {
         rotationFn(link.matchingBeacons[0].otherPerspective.position),
         rotationFn(link.matchingBeacons[0].position),
       );
-      console.log(link.to, initialPosition, offset);
       const scannerPosition = advancePosition(initialPosition, offset);
       scanner.relativizeBeaconPositions(
         scanners,
@@ -240,7 +270,7 @@ const parse = input =>
     }, undefined);
   });
 
-const part1WithCustomDetectionArea = (input, minAmount) => {
+const processScanners = (input, minAmount) => {
   const scanners = parse(input);
   scanners.forEach(scanner => scanner.calculateRotations());
   scanners.forEach((scanner, i) =>
@@ -248,29 +278,30 @@ const part1WithCustomDetectionArea = (input, minAmount) => {
       .filter((_, j) => i !== j)
       .forEach(otherScanner => scanner.buildLinkToScanner(otherScanner, minAmount)),
   );
-  while (scanners.some(s => !s.position)) {
-    const scannerToCheck = scanners.find(s => !s.position);
-    scannerToCheck.relativizeBeaconPositions(scanners);
-  }
-  console.log(scanners.map(s => s.links));
-  console.log(scanners.map(s => s.position));
+  scanners[0].relativizeBeaconPositions(scanners);
+  return scanners;
+};
+
+const part1WithCustomDetectionArea = (input, minAmount) => {
+  const scanners = processScanners(input, minAmount);
   const allBeacons = _.uniqBy(
     b => b.key,
     scanners.flatMap(scanner => scanner.realBeacons ?? []),
-  );
-  console.log(
-    allBeacons
-      .sort((a, b) => a.position[0] - b.position[0])
-      .map(b => b.key)
-      .join('\n'),
   );
   return allBeacons.length;
 };
 
 const part1 = input => part1WithCustomDetectionArea(input, 12);
 
+const getManhattanDistance = (positionA, positionB) =>
+  positionA.reduce((acc, pos, i) => acc + Math.abs(pos - positionB[i]), 0);
+
 const part2 = input => {
-  parse(input);
+  const scanners = processScanners(input, 12);
+  const distances = scanners.flatMap(scanner =>
+    scanners.map(otherScanner => getManhattanDistance(scanner.position, otherScanner.position)),
+  );
+  return Math.max(...distances);
 };
 
 module.exports = { part1, part1WithCustomDetectionArea, part2, parse, Scanner, Beacon };
