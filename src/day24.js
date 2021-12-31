@@ -72,4 +72,4 @@ const part2 = (input) => {
   parse(input);
 };
 
-module.exports = { part1, part2, ALU };
+module.exports = { part1, part2 };
