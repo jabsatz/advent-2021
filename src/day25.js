@@ -103,7 +103,6 @@ class Chart {
       else process.stdout.write(`${this.get(pos)}`);
     });
     process.stdout.write("\n");
-    // process.stdout.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
   };
 }
 
